@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
+/* Vial specific settings */
 #define VIAL_KEYBOARD_UID {0x3B, 0x6B, 0xA0, 0x29, 0x80, 0x56, 0xED, 0xD1}
 #define VIAL_UNLOCK_COMBO_ROWS {0, 0}
 #define VIAL_UNLOCK_COMBO_COLS {0, 1}
@@ -26,12 +27,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define DYNAMIC_KEYMAP_LAYER_COUNT 4
 #define TAPPING_TERM 180
 
-//#define USE_MATRIX_I2C
-#ifdef KEYBOARD_crkbd_rev1_legacy
-#    undef USE_I2C
-#    define USE_SERIAL
+/* Split keyboard detection - matches default keymap */
+#define SPLIT_USB_DETECT
+
+/* OLED Configuration - transferred from sofle_ergomech */
+#ifdef OLED_ENABLE
+#    define OLED_TIMEOUT 60000      // 60 seconds of inactivity before OLED turns off
+#    define OLED_BRIGHTNESS 255     // Full brightness (0-255)
+#    define SPLIT_OLED_ENABLE       // Sync OLED power state between halves
 #endif
 
+<<<<<<< HEAD
 /* Select hand configuration */
 
 #define MASTER_LEFT
@@ -104,17 +110,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 #define USE_SERIAL_PD2
+=======
+/* RGB settings - simplified from default */
+>>>>>>> 57e8fad (it was 2am when i made these changes i have no idea)
 #ifdef RGBLIGHT_ENABLE
-#    undef RGBLIGHT_LED_COUNT
-#    define RGBLIGHT_ANIMATIONS
-#    define RGBLIGHT_LED_COUNT 54
-#    undef RGBLED_SPLIT
-#    define RGBLED_SPLIT \
-        { 27, 27 }
-#    define RGBLIGHT_LIMIT_VAL 120
-#    define RGBLIGHT_HUE_STEP  10
-#    define RGBLIGHT_SAT_STEP  17
-#    define RGBLIGHT_VAL_STEP  17
+    #define RGBLIGHT_EFFECT_BREATHING
+    #define RGBLIGHT_EFFECT_RAINBOW_MOOD
+    #define RGBLIGHT_EFFECT_RAINBOW_SWIRL
+    #define RGBLIGHT_EFFECT_SNAKE
+    #define RGBLIGHT_EFFECT_KNIGHT
+    #define RGBLIGHT_EFFECT_CHRISTMAS
+    #define RGBLIGHT_EFFECT_STATIC_GRADIENT
+    #define RGBLIGHT_EFFECT_RGB_TEST
+    #define RGBLIGHT_EFFECT_ALTERNATING
+    #define RGBLIGHT_EFFECT_TWINKLE
+    #define RGBLIGHT_LIMIT_VAL 120
+    #define RGBLIGHT_HUE_STEP 10
+    #define RGBLIGHT_SAT_STEP 17
+    #define RGBLIGHT_VAL_STEP 17
 #endif
-
-#define OLED_FONT_H "keyboards/crkbd/lib/glcdfont.c"
