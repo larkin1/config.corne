@@ -78,6 +78,12 @@ static char    keylog_buffer[KEYLOG_SIZE][KEYCODE_NAME_LEN] = {{0}};
 static uint8_t keylog_idx                                   = 0;
 static uint8_t keylog_count                                 = 0;
 
+// State tracking for OLED rendering - only render when something changes
+static uint8_t last_keylog_count    = 0;
+static uint8_t last_layer           = 255;  // Invalid initial value
+static bool    last_caps_lock       = false;
+static bool    oled_needs_update    = true; // Force initial render
+
 // Custom key name lookup for basic keys
 const char *get_key_name(uint16_t keycode) {
     switch (keycode) {
@@ -268,6 +274,9 @@ void add_keylog(uint16_t keycode) {
     if (keylog_count < KEYLOG_SIZE) {
         keylog_count++;
     }
+    
+    // Mark OLED as needing update since keylog changed
+    oled_needs_update = true;
 }
 
 static void render_keylog_status(void) {
@@ -332,6 +341,40 @@ oled_rotation_t oled_init_user(oled_rotation_t rotation) {
 }
 
 bool oled_task_user(void) {
+    // Get current state
+    uint8_t current_layer = get_highest_layer(layer_state);
+    led_t led_usb_state = host_keyboard_led_state();
+    bool current_caps_lock = led_usb_state.caps_lock;
+    bool oled_is_on = is_oled_on();
+    
+    // Check if anything changed (for master half)
+    bool master_state_changed = (current_layer != last_layer) || 
+                                 (current_caps_lock != last_caps_lock) || 
+                                 (keylog_count != last_keylog_count);
+    
+    // For slave half: check if OLED just woke up (was off, now on)
+    static bool last_oled_state = true;
+    bool slave_needs_render = !is_keyboard_master() && (oled_is_on && !last_oled_state);
+    last_oled_state = oled_is_on;
+    
+    // Update tracking variables
+    last_layer = current_layer;
+    last_caps_lock = current_caps_lock;
+    last_keylog_count = keylog_count;
+    
+    // Only render if state changed or we need an update
+    if (!master_state_changed && !oled_needs_update && !slave_needs_render) {
+        return false;
+    }
+    
+    // Clear the update flag
+    oled_needs_update = false;
+    
+    // Check if OLED is active (not timed out) before rendering
+    if (!oled_is_on) {
+        return false;
+    }
+    
     if (is_keyboard_master()) {
         render_keylog_status();
     } else {
